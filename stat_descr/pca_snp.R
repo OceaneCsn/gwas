@@ -1,9 +1,22 @@
 load("rdata/phenotypes_regmap.RData")
-load("rdata/SNP_matrix_62_accessions_regmap_1001genomes_snp_only.RData")
 load("rdata/accessions_regmap_annotation.RData")
 
 
-library(ade4)
-x <- t(snp)
+length(intersect(regmap$ecotype, annot$Ecotype_ID))
 
-pca <- dudi.pca(x)
+
+library(ade4)
+library(tidyverse)
+x <- na.omit(regmap)
+eco <- x$ecotype
+x <- x[,str_detect(colnames(x), "change")]
+
+
+pca <- dudi.pca(x, scannf = FALSE, nf = 2)
+
+pca$li$ecotype <- eco
+pca$li$country <- annot[match(pca$li$ecotype, annot$Ecotype_ID), "country"]
+ggplot(pca$li, aes(x = Axis1, y = Axis2, col = country)) + geom_point(size = 2)
+
+ggplot(pca$co, aes(x = Comp1, y = Comp2)) + geom_point()
+

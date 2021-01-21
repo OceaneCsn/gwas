@@ -8,12 +8,10 @@ load("rdata/SNP_matrix_62_accessions_regmap_1001genomes_snp_only.RData")
 load("rdata/snp_chromosomic_map.RData")
 
 library(statgenGWAS)
-library(gwaR)
 
 # individuals for which we have snp data
 acc <- intersect(regmap$ecotype, colnames(snp))
 
-a <- annot[annot$Ecotype_ID %in% acc,]
 
 # chromosomic positions
 colnames(map) <- c("chr", "pos")
@@ -52,6 +50,11 @@ gwas <- runSingleTraitGwas(gData = gData,
 #                            remlAlgo = "EMMA",
 #                            nCores = 6)
 
+# get significant SNPs
+t <- gwas$signSnp$Y[,c("pValue", "chr", "pos")]
+t
+
+# peut prendre du temps
 plot(gwas, plotType = "manhattan", trait = "N_change", lod = 3)
 
 
@@ -60,12 +63,12 @@ plot(gwas, plotType = "manhattan", trait = "N_change", lod = 3)
 #save(bed, file = "rdata/tair10_annotation.Rdata")
 
 
-t <- gwas$signSnp$Y[,c("pValue", "chr", "pos")]
+
 
 # bed variable with gene coordinates
 load("rdata/tair10_annotation.Rdata")
 
-
+# functions that find which genes are around
 get_overlapping_region <- function(chr, pos, bed, type = "all"){
   d <- bed[bed$chr == paste0("Chr",chr),]
   d <- bed[pos > bed$start & pos < bed$end, ]
@@ -88,8 +91,11 @@ describe_snps <- function(t, bed, type = "gene"){
   return(res)
 }
 
+
+# result !!! now the genes found (column "name")
+# can be searched on TAIR10 to see their functions, etc
 genes <- describe_snps(t, bed)
+genes
 
-
-infos <- DIANE::get_gene_information(unique(genes$name), "Arabidopsis thaliana")
-View(infos)
+#infos <- DIANE::get_gene_information(unique(genes$name), "Arabidopsis thaliana")
+#View(infos)

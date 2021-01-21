@@ -1,0 +1,22 @@
+load("rdata/phenotypes_regmap.RData")
+load("rdata/accessions_regmap_annotation.RData")
+
+
+length(intersect(regmap$ecotype, annot$Ecotype_ID))
+
+
+library(ade4)
+library(tidyverse)
+x <- na.omit(regmap)
+eco <- x$ecotype
+x <- x[,str_detect(colnames(x), "change")]
+
+
+pca <- dudi.pca(x, scannf = FALSE, nf = 2)
+
+pca$li$ecotype <- eco
+pca$li$country <- annot[match(pca$li$ecotype, annot$Ecotype_ID), "country"]
+ggplot(pca$li, aes(x = Axis1, y = Axis2, col = country)) + geom_point(size = 2)
+
+ggplot(pca$co, aes(x = Comp1, y = Comp2)) + geom_point()
+
