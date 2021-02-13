@@ -1,0 +1,8 @@
+"0","pca <- dudi.pca(x, scannf = FALSE, nf = 3, center = TRUE, scale = TRUE)"
+"0","pca$li$ecotype <- eco"
+"0","pca$li$country <- annot[match(pca$li$ecotype, annot$Ecotype_ID), ""country""]"
+"0","pca$li[colnames(x)] <- x[rownames(pca$li),]"
+"0",""
+"0",""
+"0",""
+"0","ade4::s.corcircle(pca$co, xax = 1, yax = 2)"

@@ -1,0 +1,2 @@
+"0","ggplot(pca$li, aes(x = Axis1)) + geom_density(fill = ""green"", alpha = 0.1) + ggtitle(""Distribution of PCA1"") + geom_point(y=0)"
+"0",""

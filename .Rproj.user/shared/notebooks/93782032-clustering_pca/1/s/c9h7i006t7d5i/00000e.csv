@@ -1,0 +1,8 @@
+"0","set.seed(123)"
+"0","kmeans <- kmeans(x, centers = 3)"
+"0","df <- x"
+"0","df$accession <- rownames(df)"
+"0","d <- reshape2::melt(df)"
+"0","d$cluster <- kmeans$cluster[d$accession]"
+"0","ggplot(d, aes(x = variable, y = value, fill = factor(cluster))) + "
+"0","  geom_boxplot() + scale_fill_brewer(palette = ""Accent"") + ggtitle(""Cluster profiles in elements changes"")"

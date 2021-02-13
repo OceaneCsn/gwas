@@ -1,0 +1,115 @@
+---
+title: "Sélection d'accessions pour leur réponse encourageante au fort CO2"
+author: "Océane"
+date: "10/1/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: leonids
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.height = 10,
+	fig.width = 12,
+	message = FALSE,
+	warning = FALSE
+)
+load("rdata/phenotypes_regmap.RData")
+load("rdata/accessions_regmap_annotation.RData")
+
+length(intersect(regmap$ecotype, annot$Ecotype_ID))
+
+library(ade4)
+library(adegraphics)
+library(tidyverse)
+library(patchwork)
+
+x <- na.omit(regmap)
+eco <- x$ecotype
+x <- x[,str_detect(colnames(x), "change")]
+dim(x)
+```
+
+
+
+# Clustering
+
+
+
+```{r}
+pca <- dudi.pca(x, scannf = FALSE, nf = 3, center = TRUE, scale = TRUE)
+pca$li$ecotype <- eco
+pca$li$country <- annot[match(pca$li$ecotype, annot$Ecotype_ID), "country"]
+```
+
+
+
+
+
+ggplot(pca$li, aes(x = Axis1, y = Axis2, col = country)) + geom_point(size = 2)
+
+pca$li[colnames(x)] <- x[rownames(pca$li),]
+
+ggplot(pca$co, aes(x = Comp1, y = Comp2, label = rownames(pca$co))) + geom_point() + geom_label() +
+ggplot(pca$li, aes(x = Axis1, y = Axis2, label = rownames(pca$li))) + geom_point(size = 2)+ geom_text(nudge_y = 0.2)
+
+ade4::s.corcircle(pca$co, xax = 1, yax = 2)
+
+# clustering kmeans
+kmeans <- kmeans(x, centers = 3)
+
+
+x$accession <- rownames(x)
+d <- reshape2::melt(x)
+d$cluster <- kmeans$cluster[d$accession]
+ggplot(d, aes(x = variable, y = value, fill = factor(cluster))) + 
+  geom_boxplot() + scale_fill_brewer(palette = "Accent") + ggtitle("Cluster profiles in elements changes")
+
+
+
+ggplot(d, aes(x = variable, y = value, color = factor(cluster))) + 
+  geom_line(aes(group = accession, color = factor(cluster))) +
+  geom_boxplot(color = "black", alpha = 0.7) + scale_fill_brewer(palette = "Accent") + ggtitle("Cluster profiles in elements changes") + 
+  scale_color_brewer(palette = "Accent") +
+  facet_wrap(~cluster, nrow = 1)+ 
+  geom_hline(yintercept = 0, size = 1, col = "darkred") + scale_x_discrete(breaks = unique(d$variable),
+                                                                           labels = str_split_fixed(unique(d$variable), '_', 2)[,1])+
+  xlab("") + ylab("Change (%)")
+
+
+
+pca$li$cluster <- kmeans$cluster[rownames(pca$li)]
+
+ggplot(pca$co, aes(x = Comp1, y = Comp2, label = rownames(pca$co))) + geom_point() + geom_label() +
+  ggplot(pca$li, aes(x = Axis1, y = Axis2, label = rownames(pca$li), color = factor(cluster))) + 
+  geom_point(size = 2)+ geom_text(nudge_y = 0.2)+ scale_color_brewer(palette = "Accent")
+
+adegraphics::biplot(pca)
+
+pca$li[colnames(x)] <- x[rownames(pca$li),]
+
+ggplot(pca$co, aes(x = Comp1, y = Comp2, label = rownames(pca$co))) + geom_point() + geom_label()
+  
+  
+  
+(ggplot(pca$li, aes(x = Axis1, y = Axis2, label = rownames(pca$li), color = N_change)) + 
+geom_point(size = 2)+ geom_text(nudge_y = 0.2) + scale_color_viridis_c() + ggtitle("PCA with N change (%) as color code") +
+
+ggplot(pca$li, aes(x = Axis1, y = Axis2, label = rownames(pca$li), color = C_change)) + 
+  geom_point(size = 2)+ geom_text(nudge_y = 0.2) + scale_color_viridis_c() + ggtitle("PCA with C change (%) as color code")) /
+  
+
+  (ggplot(pca$li, aes(x = Axis1, y = Axis2, label = rownames(pca$li), color = Mn_change)) + 
+     geom_point(size = 2)+ geom_text(nudge_y = 0.2) + scale_color_viridis_c() + ggtitle("PCA with Mn change (%) as color code") +
+     
+     ggplot(pca$li, aes(x = Axis1, y = Axis2, label = rownames(pca$li), color = Fe_change)) + 
+     geom_point(size = 2)+ geom_text(nudge_y = 0.2) + scale_color_viridis_c() + ggtitle("PCA with Fe change (%) as color code")) 
+
+
+ggplot(pca$li, aes(x = Axis1)) + geom_density(fill = "green", alpha = 0.1) + ggtitle("Distribution of PCA1") + geom_point(y=0)
+
+
+
